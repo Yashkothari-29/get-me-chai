@@ -7,18 +7,16 @@ const connectDB = async () => {
     throw new Error("❌ MONGODB_URI is not defined in environment variables.");
   }
 
-    try {
-      const conn = await mongoose.connect(`mongodb://localhost:27017/chai`, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true, // ✅ Add this for proper MongoDB connection handling
-      });
+  try {
+    const conn = await mongoose.connect(uri, {
+      dbName: "getmeachai", // 👈 Optional, but good to ensure the DB is set
+    });
 
-      // ✅ Fix string interpolation
-      console.log(`MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-      console.error("MongoDB Connection Error:", error.message);
-      process.exit(1);
-    }
-}
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error("❌ MongoDB Connection Error:", error.message);
+    process.exit(1);
+  }
+};
 
 export default connectDB;
