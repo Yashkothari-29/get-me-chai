@@ -31,6 +31,10 @@ const UserSchema = new Schema({
         type: String,  
         select: true  // ✅ Ensure this field is selectable
     },
+    password: {
+        type: String,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -39,6 +43,22 @@ const UserSchema = new Schema({
         type: Date,
         default: Date.now
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationToken: {
+        type: String,
+        default: null
+    },
+    passwordResetToken: {
+        type: String,
+        default: null
+    },
+    passwordResetExpires: {
+        type: Date,
+        default: null
+    }
 });
 
 export default mongoose.models.User || model("User", UserSchema);

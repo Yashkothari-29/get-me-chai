@@ -20,18 +20,24 @@ export const initiate = async (amount, to_username, paymentform) => {
         currency: "INR",
         receipt: "receipt#1",
         payment_capture: 1,
+        notes: {
+            to_user: to_username,
+            name: paymentform.name,
+            message: paymentform.message,
+            amount: amount
+        }
     }
 
     let x = await instance.orders.create(options);
 
-    // Create a pending payment record in the database
-    await Payment.create({
-        name: paymentform.name,
-        to_user: to_username,
-        oid: x.id,
-        amount: amount,
-        message: paymentform.message
-    });
+    // Do NOT create a Payment record here anymore
+    // await Payment.create({
+    //     name: paymentform.name,
+    //     to_user: to_username,
+    //     oid: x.id,
+    //     amount: amount,
+    //     message: paymentform.message
+    // });
 
     return x;
 }
@@ -77,7 +83,7 @@ export const fetchpayments = async (username) => {
 
 export const updateProfile = async (data, oldusername) => {
     await connectDB(); 
-    let ndata = Object.fromEntries(data);
+    let ndata = data;
 
     console.log("🔍 Received Update Data:", ndata);
 
@@ -86,7 +92,12 @@ export const updateProfile = async (data, oldusername) => {
 
     let result = await User.updateOne(
         { email: ndata.email },
-        { $set: { profilepic: ndata.profilepic, coverpic: ndata.coverpic } }
+        { $set: { 
+            profilepic: ndata.profilepic, 
+            coverpic: ndata.coverpic,
+            razorpayid: ndata.razorpayid,
+            razorpaysecret: ndata.razorpaysecret
+        } }
     );
 
     console.log("✅ MongoDB Update Result:", result);

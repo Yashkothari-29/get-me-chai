@@ -1,8 +1,10 @@
 import NextAuth from 'next-auth'
 import GitHubProvider from 'next-auth/providers/github'
+import CredentialsProvider from 'next-auth/providers/credentials'
 import mongoose from "mongoose";
 import User from '@/models/User'
 import connectDB from '@/db/connectDb'
+import bcrypt from 'bcryptjs';
 
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
 
@@ -12,6 +14,31 @@ export const authoptions = NextAuth({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET
     }),
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "email@example.com" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        await connectDB();
+        const user = await User.findOne({ email: credentials.email }).select('+password');
+        if (!user) {
+          throw new Error('No user found with this email');
+        }
+        if (!user.isVerified) {
+          throw new Error('Please verify your email before logging in.');
+        }
+        if (!user.password) {
+          throw new Error('No password set for this user.');
+        }
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) {
+          throw new Error('Invalid password');
+        }
+        return { id: user._id, email: user.email, name: user.username };
+      }
+    })
   ],
   callbacks: {
     async signIn({ user, account }) {

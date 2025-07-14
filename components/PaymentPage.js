@@ -26,8 +26,8 @@ const PaymentPage = ({ username }) => {
   }, [username]);
 
   useEffect(() => {
-    if(searchParams.get("paymentdone") == "true"){
-    toast('Thanks for your donation!', {
+    if (searchParams.get("paymentdone") === "true") {
+      toast('Thanks for your donation!', {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -37,11 +37,12 @@ const PaymentPage = ({ username }) => {
         progress: undefined,
         theme: "light",
         transition: Bounce,
-        });
+      });
+      getData(); // Refresh supporters list
+      // Optionally, remove the query param from the URL after showing the toast
+      // router.replace(`/${username}`);
     }
-    router.push(`/${username}`)
- 
-}, [])
+}, [searchParams]);
 
   
   const handleChange = (e) => { 
@@ -67,7 +68,7 @@ const PaymentPage = ({ username }) => {
     let orderid = a.id;
     
     var options = {
-      key_id: process.env.NEXT_PUBLIC_KEY_ID, 
+      key: process.env.NEXT_PUBLIC_KEY_ID, 
       callback_url: `${process.env.NEXT_PUBLIC_URL}/api/razorpay`,
       amount: amount,
       currency: "INR",
@@ -91,6 +92,8 @@ const PaymentPage = ({ username }) => {
     rzp1.open();
   };
 
+  const isOwnProfile = session && session.user && (session.user.username === username || session.user.name === username || session.user.email === currentuser.email);
+
   return (
     <>
     <ToastContainer
@@ -113,15 +116,15 @@ const PaymentPage = ({ username }) => {
       <div className="cover text-white w-full bg-red-50 relative">
         <img
           className="object-top object-cover w-full h-80"
-          src="https://c10.patreonusercontent.com/4/patreon-media/p/campaign/7016566/98f1c405276a45258a1501793dec867f/eyJ3IjoxOTIwLCJ3ZSI6MX0%3D/2.jpg?token-time=1741046400&token-hash=45aCfTJiKP3d_DipBFMOUaC5kXA75uIH0zSYoAxpLcE%3D"
-          alt=""
+          src={(currentuser && currentuser.coverpic) ? currentuser.coverpic : '/default-cover.jpg'}
+          alt="Cover"
         />
         <div className="profilepicture absolute border border-3 -bottom-16 bg-white rounded-2xl right-[46%]">
           <img
             width={120}
             height={120}
-            src="https://c10.patreonusercontent.com/4/patreon-media/p/campaign/7016566/7bffef4f60a748568f21f85aefd0c26d/eyJoIjoxMDgwLCJ3IjoxMDgwfQ%3D%3D/2.jpg?token-time=1740787200&token-hash=UJbL_fhdrLUwEd3lcn5AaOvo95Ff7T7HqP5Qm0XTXNk%3D"
-            alt=""
+            src={(currentuser && currentuser.profilepic) ? currentuser.profilepic : '/default-profile.jpg'}
+            alt="Profile"
           />
         </div>
       </div>
@@ -155,58 +158,69 @@ const PaymentPage = ({ username }) => {
               ))}
             </ul>
           </div>
-          <div className="makepayement w-1/2 bg-slate-900 rounded-r-2xl text-white p-10">
-            <h2 className="text-xl font-bold my-5"> Make Payment</h2>
-            <div className="flex gap-2 mt-5">
-              <input
-                onChange={handleChange}
-                name="name"
-                value={paymentform.name}
-                className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
-                type="text"
-                placeholder="Name"
-              />
-              <input
-                name="message"
-                onChange={handleChange}
-                value={paymentform.message}
-                className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
-                type="text"
-                placeholder="Message"
-              />
+          {/* Only show payment UI if not own profile */}
+          {!isOwnProfile && (
+            <div className="makepayement w-1/2 bg-slate-900 rounded-r-2xl text-white p-10">
+              <h2 className="text-xl font-bold my-5"> Make Payment</h2>
+              <div className="flex gap-2 mt-5">
+                <input
+                  onChange={handleChange}
+                  name="name"
+                  value={paymentform.name}
+                  className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
+                  type="text"
+                  placeholder="Name"
+                />
+                <input
+                  name="message"
+                  onChange={handleChange}
+                  value={paymentform.message}
+                  className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
+                  type="text"
+                  placeholder="Message"
+                />
+              </div>
+              <div className="flex gap-2 pt-4 items-center">
+                <input
+                  name="amount"
+                  onChange={handleChange}
+                  value={paymentform.amount}
+                  className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
+                  type="text"
+                  placeholder="Amount"
+                />
+              </div>
+              <div className="flex gap-2 mt-5">
+                <button onClick={() => pay({ amount: 1500 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
+                  ₹15
+                </button>
+                <button onClick={() => pay({ amount: 2500 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
+                  ₹25
+                </button>
+                <button onClick={() => pay({ amount: 5000 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
+                  ₹50
+                </button>
+                <button onClick={() => pay({ amount: 10000 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
+                  ₹100
+                </button>
+              </div>
+              <button
+                onClick={() => pay({ amount: paymentform.amount * 100 })}
+                className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Support with Custom Amount
+              </button>
             </div>
-
-            <div className="flex gap-2 pt-4 items-center">
-              <input
-                name="amount"
-                onChange={handleChange}
-                value={paymentform.amount}
-                className="border-2 border-slate-500 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
-                type="text"
-                placeholder="Amount"
-              />
+          )}
+          {/* If own profile, show stats or a message */}
+          {isOwnProfile && (
+            <div className="makepayement w-1/2 bg-slate-900 rounded-r-2xl text-white p-10 flex flex-col items-center justify-center">
+              <h2 className="text-xl font-bold my-5">Your Creator Stats</h2>
+              <div className="text-lg mb-2">Total Supporters: <span className="font-bold">{payments.length}</span></div>
+              <div className="text-lg mb-2">Total Raised: <span className="font-bold">₹{payments.reduce((a, b) => a + b.amount, 0) / 100}</span></div>
+              <div className="text-gray-400 mt-4">You cannot donate to yourself.</div>
             </div>
-            <div className="flex gap-2 mt-5">
-              <button onClick={() => pay({ amount: 1500 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
-                ₹15
-              </button>
-              <button onClick={() => pay({ amount: 2500 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
-                ₹25
-              </button>
-              <button onClick={() => pay({ amount: 5000 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
-                ₹50
-              </button>
-              <button onClick={() => pay({ amount: 10000 })} className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white">
-                ₹100
-              </button>
-            </div>
-            <button 
-              className="mt-4 border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white" 
-              onClick={() => pay({ amount: Number.parseInt(paymentform.amount) * 100 })}
-            >
-              Pay ₹{paymentform.amount || "Custom"}
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </>

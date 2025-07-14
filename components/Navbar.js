@@ -43,6 +43,12 @@ const Navbar = () => {
             Projects
           </Link>
         )}
+        <Link
+          href={"/creators"}
+          className="border-2 border-slate-500 cursor-pointer hover:border-slate-300 rounded-xl py-1 px-2 text-lg font-normal bg-black text-white"
+        >
+          Creators
+        </Link>
         {!session && (
           <Link
             href={"/signup"}
@@ -85,7 +91,11 @@ const Navbar = () => {
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 type="button"
               >
-                {session.user.email}{" "}
+                {/* Show profile photo if available */}
+                {session.user.profilepic ? (
+                  <img src={session.user.profilepic} alt="Profile" className="w-8 h-8 rounded-full mr-2 border-2 border-white" />
+                ) : null}
+                {session.user.email} {" "}
                 <svg
                   className="w-2.5 h-2.5 ms-3"
                   aria-hidden="true"
